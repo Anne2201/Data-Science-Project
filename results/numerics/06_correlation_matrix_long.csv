@@ -1,0 +1,145 @@
+Feature1,Feature2,Correlation
+Budget (in $),Budget (in $),1.0
+Budget (in $),World Wide Sales (in $),0.5619654286696971
+Budget (in $),Domestic Opening (in $),0.5539690714647509
+Budget (in $),Running Time,0.31831672183733634
+Budget (in $),ROI,-0.06972043148517304
+Budget (in $),International Sales (in $),0.5544427676664274
+Budget (in $),Genre_Action,0.37949053190423226
+Budget (in $),Genre_Adventure,0.10342473518422277
+Budget (in $),Genre_Comedy,-0.30006535737314566
+Budget (in $),Genre_Drama,-0.18270263537394715
+Budget (in $),Genre_Biography,-0.13489014358858722
+Budget (in $),Genre_Crime,-0.1069889947988477
+World Wide Sales (in $),Budget (in $),0.5619654286696971
+World Wide Sales (in $),World Wide Sales (in $),1.0
+World Wide Sales (in $),Domestic Opening (in $),0.7291223965290948
+World Wide Sales (in $),Running Time,0.3089437410820056
+World Wide Sales (in $),ROI,-0.02843601678233289
+World Wide Sales (in $),International Sales (in $),0.9589224644578587
+World Wide Sales (in $),Genre_Action,0.1652821780361021
+World Wide Sales (in $),Genre_Adventure,0.11666957719280444
+World Wide Sales (in $),Genre_Comedy,-0.17843550930102675
+World Wide Sales (in $),Genre_Drama,-0.07845393143765184
+World Wide Sales (in $),Genre_Biography,-0.08223347259621001
+World Wide Sales (in $),Genre_Crime,-0.062231505843032484
+Domestic Opening (in $),Budget (in $),0.5539690714647509
+Domestic Opening (in $),World Wide Sales (in $),0.7291223965290948
+Domestic Opening (in $),Domestic Opening (in $),1.0
+Domestic Opening (in $),Running Time,0.21684427295687558
+Domestic Opening (in $),ROI,-0.04611619475470688
+Domestic Opening (in $),International Sales (in $),0.5843561080599261
+Domestic Opening (in $),Genre_Action,0.2335361159183154
+Domestic Opening (in $),Genre_Adventure,0.03983334930402021
+Domestic Opening (in $),Genre_Comedy,-0.15909881878759924
+Domestic Opening (in $),Genre_Drama,-0.10765760485909702
+Domestic Opening (in $),Genre_Biography,-0.11548590387408696
+Domestic Opening (in $),Genre_Crime,-0.06917214575462251
+Running Time,Budget (in $),0.31831672183733634
+Running Time,World Wide Sales (in $),0.3089437410820056
+Running Time,Domestic Opening (in $),0.21684427295687558
+Running Time,Running Time,1.0
+Running Time,ROI,-0.06456861463958466
+Running Time,International Sales (in $),0.3128636476060823
+Running Time,Genre_Action,0.2171968220604974
+Running Time,Genre_Adventure,-0.26423312947732197
+Running Time,Genre_Comedy,-0.16497607051529306
+Running Time,Genre_Drama,0.1363708693824966
+Running Time,Genre_Biography,0.14484613074397615
+Running Time,Genre_Crime,0.1122256267100063
+ROI,Budget (in $),-0.06972043148517304
+ROI,World Wide Sales (in $),-0.02843601678233289
+ROI,Domestic Opening (in $),-0.04611619475470688
+ROI,Running Time,-0.06456861463958466
+ROI,ROI,1.0
+ROI,International Sales (in $),-0.031494803108770994
+ROI,Genre_Action,-0.043709855502048714
+ROI,Genre_Adventure,-0.021234860527637803
+ROI,Genre_Comedy,-0.012840554641046815
+ROI,Genre_Drama,-0.010014988533985253
+ROI,Genre_Biography,-0.006915946648943666
+ROI,Genre_Crime,-0.004752007635329702
+International Sales (in $),Budget (in $),0.5544427676664274
+International Sales (in $),World Wide Sales (in $),0.9589224644578587
+International Sales (in $),Domestic Opening (in $),0.5843561080599261
+International Sales (in $),Running Time,0.3128636476060823
+International Sales (in $),ROI,-0.031494803108770994
+International Sales (in $),International Sales (in $),1.0
+International Sales (in $),Genre_Action,0.17713078922137168
+International Sales (in $),Genre_Adventure,0.12117725365763206
+International Sales (in $),Genre_Comedy,-0.19762617903168656
+International Sales (in $),Genre_Drama,-0.08663415351394872
+International Sales (in $),Genre_Biography,-0.09015810276194113
+International Sales (in $),Genre_Crime,-0.05863935171183082
+Genre_Action,Budget (in $),0.37949053190423226
+Genre_Action,World Wide Sales (in $),0.1652821780361021
+Genre_Action,Domestic Opening (in $),0.2335361159183154
+Genre_Action,Running Time,0.2171968220604974
+Genre_Action,ROI,-0.043709855502048714
+Genre_Action,International Sales (in $),0.17713078922137168
+Genre_Action,Genre_Action,1.0
+Genre_Action,Genre_Adventure,-0.4687529122391151
+Genre_Action,Genre_Comedy,-0.37851752692617896
+Genre_Action,Genre_Drama,-0.26775653010060857
+Genre_Action,Genre_Biography,-0.17548892879523068
+Genre_Action,Genre_Crime,-0.15306963336492352
+Genre_Adventure,Budget (in $),0.10342473518422277
+Genre_Adventure,World Wide Sales (in $),0.11666957719280444
+Genre_Adventure,Domestic Opening (in $),0.03983334930402021
+Genre_Adventure,Running Time,-0.26423312947732197
+Genre_Adventure,ROI,-0.021234860527637803
+Genre_Adventure,International Sales (in $),0.12117725365763206
+Genre_Adventure,Genre_Action,-0.4687529122391151
+Genre_Adventure,Genre_Adventure,1.0
+Genre_Adventure,Genre_Comedy,-0.18993735646910612
+Genre_Adventure,Genre_Drama,-0.13435828960852497
+Genre_Adventure,Genre_Biography,-0.08805907482181641
+Genre_Adventure,Genre_Crime,-0.076809234576604
+Genre_Comedy,Budget (in $),-0.30006535737314566
+Genre_Comedy,World Wide Sales (in $),-0.17843550930102675
+Genre_Comedy,Domestic Opening (in $),-0.15909881878759924
+Genre_Comedy,Running Time,-0.16497607051529306
+Genre_Comedy,ROI,-0.012840554641046815
+Genre_Comedy,International Sales (in $),-0.19762617903168656
+Genre_Comedy,Genre_Action,-0.37851752692617896
+Genre_Comedy,Genre_Adventure,-0.18993735646910612
+Genre_Comedy,Genre_Comedy,1.0
+Genre_Comedy,Genre_Drama,-0.10849418995973645
+Genre_Comedy,Genre_Biography,-0.07110761843749012
+Genre_Comedy,Genre_Crime,-0.062023383232226455
+Genre_Drama,Budget (in $),-0.18270263537394715
+Genre_Drama,World Wide Sales (in $),-0.07845393143765184
+Genre_Drama,Domestic Opening (in $),-0.10765760485909702
+Genre_Drama,Running Time,0.1363708693824966
+Genre_Drama,ROI,-0.010014988533985253
+Genre_Drama,International Sales (in $),-0.08663415351394872
+Genre_Drama,Genre_Action,-0.26775653010060857
+Genre_Drama,Genre_Adventure,-0.13435828960852497
+Genre_Drama,Genre_Comedy,-0.10849418995973645
+Genre_Drama,Genre_Drama,1.0
+Genre_Drama,Genre_Biography,-0.05030025777446661
+Genre_Drama,Genre_Crime,-0.04387423222967444
+Genre_Biography,Budget (in $),-0.13489014358858722
+Genre_Biography,World Wide Sales (in $),-0.08223347259621001
+Genre_Biography,Domestic Opening (in $),-0.11548590387408696
+Genre_Biography,Running Time,0.14484613074397615
+Genre_Biography,ROI,-0.006915946648943666
+Genre_Biography,International Sales (in $),-0.09015810276194113
+Genre_Biography,Genre_Action,-0.17548892879523068
+Genre_Biography,Genre_Adventure,-0.08805907482181641
+Genre_Biography,Genre_Comedy,-0.07110761843749012
+Genre_Biography,Genre_Drama,-0.05030025777446661
+Genre_Biography,Genre_Biography,1.0
+Genre_Biography,Genre_Crime,-0.028755384650397623
+Genre_Crime,Budget (in $),-0.1069889947988477
+Genre_Crime,World Wide Sales (in $),-0.062231505843032484
+Genre_Crime,Domestic Opening (in $),-0.06917214575462251
+Genre_Crime,Running Time,0.1122256267100063
+Genre_Crime,ROI,-0.004752007635329702
+Genre_Crime,International Sales (in $),-0.05863935171183082
+Genre_Crime,Genre_Action,-0.15306963336492352
+Genre_Crime,Genre_Adventure,-0.076809234576604
+Genre_Crime,Genre_Comedy,-0.062023383232226455
+Genre_Crime,Genre_Drama,-0.04387423222967444
+Genre_Crime,Genre_Biography,-0.028755384650397623
+Genre_Crime,Genre_Crime,1.0
