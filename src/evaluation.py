@@ -366,6 +366,7 @@ def final_market_share_summary_4pies(df: pd.DataFrame) -> plt.Figure:
     d = _safe_filter_year(df, 1990, 2023).copy()
     d["Decade"] = (d["Year"] // 10) * 10
 
+    # Categorization using categorical bins
     d["Runtime_Bin"] = pd.cut(
         d["Running Time"],
         bins=[0, 90, 120, 150, 500],
@@ -386,19 +387,20 @@ def final_market_share_summary_4pies(df: pd.DataFrame) -> plt.Figure:
         ax.pie(s.values, labels=s.index.astype(str), autopct="%1.1f%%", startangle=140)
         ax.set_title(title)
 
-    pie(axes[0, 0], d.groupby("Runtime_Bin")["World Wide Sales (in $)"].sum(), "Revenue by Movie Duration")
-    pie(axes[0, 1], d.groupby("Budget_Bin")["World Wide Sales (in $)"].sum(), "Revenue by Budget Level")
+    # The 'observed=False' argument ensures empty categories are handled correctly and suppresses warnings
+    pie(axes[0, 0], d.groupby("Runtime_Bin", observed=False)["World Wide Sales (in $)"].sum(), "Revenue by Movie Duration")
+    pie(axes[0, 1], d.groupby("Budget_Bin", observed=False)["World Wide Sales (in $)"].sum(), "Revenue by Budget Level")
 
-    genre_sales = d.groupby("Main_Genre")["World Wide Sales (in $)"].sum().sort_values(ascending=False)
+    # Standard groupbys on non-categorical columns don't necessarily need observed=False but it's good practice here
+    genre_sales = d.groupby("Main_Genre", observed=False)["World Wide Sales (in $)"].sum().sort_values(ascending=False)
     top = genre_sales.head(6)
     others = pd.Series({"Others": genre_sales.iloc[6:].sum()})
     pie(axes[1, 0], pd.concat([top, others]), "Revenue by Film Type (Top 6 + Others)")
 
-    decade_sales = d.groupby(d["Decade"].astype(str) + "s")["World Wide Sales (in $)"].sum()
+    decade_sales = d.groupby((d["Decade"].astype(str) + "s"), observed=False)["World Wide Sales (in $)"].sum()
     pie(axes[1, 1], decade_sales, "Revenue Weight by Decade")
 
     return fig
-
 
 # -------------------------
 # CLUSTERING
