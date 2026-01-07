@@ -20,7 +20,7 @@ from src.evaluation import (
     save_figure,
     save_csv,
 
-    # EDA / historiques
+    # Exploratory data analysis (EDA) / historical
     historical_dashboard_4plots,
     market_share_pies_2plots,
     market_share_evolution_4pies,
@@ -46,7 +46,7 @@ from src.evaluation import (
     ml_rf_feature_importance_plot,
     ml_lr_coefficients_plot,
 
-    # LSTM plots + stratégie
+    # LSTM plots and strategy
     lstm_forecast_vs_actual_plot,
     lstm_training_loss_plot,
     strategic_simulation_summary_table,  # numeric export
@@ -70,15 +70,15 @@ def main():
     plots_dir, nums_dir = ensure_results_dirs("results")
 
     # -------------------------
-    # PART 1 — Excel dataset (Data1.xlsx)
+    # Data: Excel dataset (Data1.xlsx)
     # -------------------------
     base_dir = Path(__file__).resolve().parent
     excel_path = base_dir / "data" / "raw" / "Data1.xlsx"
 
     if not excel_path.exists():
         raise FileNotFoundError(
-            f"❌ Introuvable: {excel_path}\n"
-            f"➡️ Mets Data1.xlsx dans data/raw/Data1.xlsx"
+            f"Not Found: {excel_path}\n"
+            f"Put Data1.xlsx dans data/raw/Data1.xlsx"
         )
 
     df_raw = load_excel(excel_path)
@@ -174,11 +174,11 @@ def main():
         save_csv(artifacts["lr_coef_df"], nums_dir, "19_ml_lr_coefficients.csv")
 
     # =========================
-    # 4) LSTM + STRATEGY (Using Excel data)
+    # 4) LSTM and STRATEGY (Using Excel data)
     # =========================
     print("--- Démarrage de la partie LSTM (calculs en cours...) ---")
     
-    # On utilise 'df' (l'Excel) au lieu de charger un CSV
+    # Use 'df' (Excel) instead of CSV 
     df_ts = clean_for_timeseries_lstm(df)
 
     X_seq, y_seq, scaler, split_info = prepare_lstm_data(df_ts, window_size=5)

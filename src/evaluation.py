@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 # -------------------------
-# IO
+# Input/ Output
 # -------------------------
 def ensure_results_dirs(root: str = "results") -> Tuple[Path, Path]:
     root = Path(root)
@@ -41,7 +41,7 @@ def _safe_filter_year(df: pd.DataFrame, y0: int, y1: int) -> pd.DataFrame:
 
 
 # -------------------------
-# EDA / HISTORICAL (Notebook-style)
+# Exploratory data analysis / HISTORICAL 
 # -------------------------
 def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
     d = _safe_filter_year(df, 1937, 2023)
@@ -67,7 +67,7 @@ def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
     axes[0, 1].set_ylabel("Mean Budget")
     axes[0, 1].grid(True, alpha=0.25)
 
-    # c) revenue WW vs International
+    # c) revenue World Wide vs International
     if {"Year", "World Wide Sales (in $)", "International Sales (in $)"}.issubset(d.columns):
         rev = d.groupby("Year")[["World Wide Sales (in $)", "International Sales (in $)"]].mean()
         axes[1, 0].plot(rev.index, rev["World Wide Sales (in $)"], label="World Wide", linewidth=1.6)
@@ -442,7 +442,7 @@ def kmeans_cluster_profiles_table(df_clust: pd.DataFrame) -> pd.DataFrame:
 
 
 # -------------------------
-# ML plots
+# Machine Learning plots
 # -------------------------
 def ml_comparison_barplot(comparison_df: pd.DataFrame) -> plt.Figure:
     fig = plt.figure(figsize=(12, 7))

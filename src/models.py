@@ -18,7 +18,7 @@ import torch.nn as nn
 
 
 # =========================
-# ML
+# Machine Learning
 # =========================
 def _build_ml_dataset(df: pd.DataFrame, include_distributor: bool = True):
     d = df.copy()
@@ -158,17 +158,17 @@ def train_lstm(X_seq: np.ndarray, y_seq: np.ndarray, train_size: int, epochs: in
 
 
 # =========================
-# STRATEGIC SIMULATOR (comme ton notebook, simplifié mais cohérent)
+# STRATEGIC SIMULATOR 
 # =========================
 def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module):
     """
-    Simule revenus (Millions $) et ROI selon mois + budget.
-    On garde genre "pseudo" (4 catégories) car ton CSV peut ne pas contenir les genres.
+    Simulation of revenues (Millions $) and ROI depending on month and budget.
+    Keeping genre "pseudo" (4 categories)
     """
     model.eval()
     np.random.seed(42)
 
-    # Univers simplifié (comme notebook)
+    # Simple Univers 
     genres = ["Action/Blockbuster", "Horror/Thriller", "Sci-Fi", "Comedy/Drama"]
     months = [5, 6, 7, 11, 12]
     budgets_m = [10, 50, 100, 200]
@@ -182,20 +182,20 @@ def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module):
             for b in budgets_m:
                 # input seq neutre
                 x = torch.zeros((1, 5, 3), dtype=torch.float32)
-                # log budget & month "approx" dans l’espace [0..1] car on a entraîné en MinMax
-                # -> on met des valeurs plausibles
+                # log budget & month "approx" in the space [0..1] because trained in : MinMax
+                # put plausible values
                 x[0, :, 1] = float(np.clip(np.log1p(b * 1e6) / 20.0, 0, 1))
                 x[0, :, 2] = float(np.clip(m / 12.0, 0, 1))
 
                 with torch.no_grad():
                     pred_norm = float(model(x).item())
 
-                # rescale heuristique -> millions $
+                # heuristic rescale: millions $
                 predicted_log = pred_norm * max_log_sales
                 pred_rev = float(np.expm1(predicted_log))
                 pred_rev_m = pred_rev / 1e6
 
-                # boosts / penalties façon notebook
+                # boosts / penalties 
                 if g == "Action/Blockbuster" and m in [6, 7]:
                     pred_rev_m *= 1.25
                 if g == "Horror/Thriller" and m in [10, 11]:
@@ -227,7 +227,7 @@ def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module):
 
 def generate_diversified_majors_plan(model: nn.Module) -> pd.DataFrame:
     """
-    Reproduit l’idée "Diversified Strategic Matrix: Studio Specialization (2026-2035)"
+    "Diversified Strategic Matrix: Studio Specialization (2026-2035)"
     (plan 1 config optimale par studio).
     """
     model.eval()
