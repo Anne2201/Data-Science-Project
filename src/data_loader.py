@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+import warnings
 from typing import Optional, List
 
 import numpy as np
@@ -22,6 +23,7 @@ def load_first_csv_in_dir(directory: str = ".") -> pd.DataFrame:
 
 
 def convert_runtime(time_str) -> int:
+    """Helper to standardize movie duration into minutes."""
     if pd.isna(time_str):
         return 100
     try:
@@ -45,14 +47,18 @@ def clean_genre_list(x) -> List[str]:
 
 def parse_release_date(series: pd.Series) -> pd.Series:
     """
-    Parses dates by trying specific formats first to avoid UserWarnings.
+    Robust date parsing to handle inconsistent Excel formats.
+    Silences engine warnings after trying standard patterns.
     """
     fmts = ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%d.%m.%Y"]
     for fmt in fmts:
         parsed = pd.to_datetime(series, format=fmt, errors="coerce")
         if parsed.notna().mean() > 0.7:
             return parsed
-    # Fallback with dayfirst=True to handle European formats and suppress warnings
+    # Clean fallback for messy date strings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        return pd.to_datetime(series, errors="coerce", dayfirst=True)
     return pd.to_datetime(series, errors="coerce", dayfirst=True)
 
 
