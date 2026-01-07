@@ -44,12 +44,16 @@ def clean_genre_list(x) -> List[str]:
 
 
 def parse_release_date(series: pd.Series) -> pd.Series:
+    """
+    Parses dates by trying specific formats first to avoid UserWarnings.
+    """
     fmts = ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%d.%m.%Y"]
     for fmt in fmts:
         parsed = pd.to_datetime(series, format=fmt, errors="coerce")
         if parsed.notna().mean() > 0.7:
             return parsed
-    return pd.to_datetime(series, errors="coerce")
+    # Fallback with dayfirst=True to handle European formats and suppress warnings
+    return pd.to_datetime(series, errors="coerce", dayfirst=True)
 
 
 def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[str]] = None) -> pd.DataFrame:
@@ -58,7 +62,7 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
 
     d = df.copy()
 
-    # Ensure minimum columns exist
+    # Column existence check 
     if "Title" not in d.columns:
         d["Title"] = np.arange(len(d))
     if "Distributor" not in d.columns:
@@ -75,6 +79,7 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
         if col not in d.columns:
             d[col] = np.nan
 
+    # Data Cleaning
     # Runtime
     d["Running Time"] = d["Running Time"].apply(convert_runtime)
 
@@ -84,6 +89,7 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
     for g in target_genres:
         d[f"is_{g}"] = d["Genre_List"].apply(lambda xs: 1 if isinstance(xs, list) and g in xs else 0)
 
+    #Date Processing
     # Dates
     d["Release Date"] = parse_release_date(d["Release Date"])
     d["Year"] = d["Release Date"].dt.year
@@ -93,7 +99,7 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
     for col in ["Budget (in $)", "World Wide Sales (in $)", "Domestic Opening (in $)", "Domestic Sales (in $)"]:
         d[col] = pd.to_numeric(d[col], errors="coerce")
 
-    # Missing values median
+    # Median filling 
     for col in ["Budget (in $)", "World Wide Sales (in $)", "Domestic Opening (in $)"]:
         if d[col].notna().any():
             d[col] = d[col].fillna(d[col].median())
