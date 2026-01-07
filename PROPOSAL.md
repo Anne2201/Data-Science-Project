@@ -43,7 +43,7 @@ Part 2: Forecast Box-Office Revenue Trajectory
 -	Predict the revenue trajectory and compare it to the bassline model: simple linear regression
 -	See how consistent it can be
 
-Expected Challenges & Solutions:
+# Expected Challenges & Solutions:
 -	High variance in revenues and budget depending on the size of the film production (ex: blockbusters vs. small productions): try to use log-transformation target variable
 
 -	Incomplete data: filter, conservative data imputation
