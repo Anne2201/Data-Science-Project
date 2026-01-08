@@ -157,71 +157,83 @@ def train_lstm(X_seq: np.ndarray, y_seq: np.ndarray, train_size: int, epochs: in
     return model, artifacts
 
 
-# =========================
-# STRATEGIC SIMULATOR 
-# =========================
-def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module):
+def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module, n_simulations: int = 100):
     """
-    Simulation of revenues (Millions $) and ROI depending on month and budget.
-    Keeping genre "pseudo" (4 categories)
+    Monte Carlo Simulation for revenue forecasting and ROI optimization.
+    Injects market uncertainty (noise) to calculate confidence intervals and financial risk.
     """
     model.eval()
     np.random.seed(42)
 
-    # Simple Univers 
+    # Strategic archetypes and release windows
     genres = ["Action/Blockbuster", "Horror/Thriller", "Sci-Fi", "Comedy/Drama"]
     months = [5, 6, 7, 11, 12]
     budgets_m = [10, 50, 100, 200]
 
+    # Reference for rescaling predictions
     max_log_sales = float(df_ts["Log_Sales"].max()) if "Log_Sales" in df_ts.columns else 18.0
-
     results = []
-    # modèle: input = (1,5,3) features: [Log_Sales, Log_Budget, Release_Month] scaled
+
     for g in genres:
         for m in months:
             for b in budgets_m:
-                # input seq neutre
-                x = torch.zeros((1, 5, 3), dtype=torch.float32)
-                # log budget & month "approx" in the space [0..1] because trained in : MinMax
-                # put plausible values
-                x[0, :, 1] = float(np.clip(np.log1p(b * 1e6) / 20.0, 0, 1))
-                x[0, :, 2] = float(np.clip(m / 12.0, 0, 1))
+                simulated_outcomes = []
+                
+                # Execution of n_simulations per project to assess risk
+                for _ in range(n_simulations):
+                    # Prepare input sequence with Gaussian noise to simulate market volatility
+                    x = torch.zeros((1, 5, 3), dtype=torch.float32)
+                    noise = torch.randn((1, 5, 3)) * 0.02  # 2% volatility factor
+                    x = x + noise
+                    
+                    # Normalize budget and month for the LSTM (MinMax space [0..1])
+                    x[0, :, 1] = float(np.clip(np.log1p(b * 1e6) / 20.0, 0, 1))
+                    x[0, :, 2] = float(np.clip(m / 12.0, 0, 1))
 
-                with torch.no_grad():
-                    pred_norm = float(model(x).item())
+                    with torch.no_grad():
+                        pred_norm = float(model(x).item())
 
-                # heuristic rescale: millions $
-                predicted_log = pred_norm * max_log_sales
-                pred_rev = float(np.expm1(predicted_log))
-                pred_rev_m = pred_rev / 1e6
+                    # Reverse log-transform to get revenue in Millions
+                    predicted_log = pred_norm * max_log_sales
+                    pred_rev = float(np.expm1(predicted_log))
+                    pred_rev_m = pred_rev / 1e6
 
-                # boosts / penalties 
-                if g == "Action/Blockbuster" and m in [6, 7]:
-                    pred_rev_m *= 1.25
-                if g == "Horror/Thriller" and m in [10, 11]:
-                    pred_rev_m *= 1.15
-                if m == 7:
-                    pred_rev_m *= 0.92  # competition penalty
+                    # Apply business logic: Seasonal boosts and competitive penalties
+                    if g == "Action/Blockbuster" and m in [6, 7]: pred_rev_m *= 1.25
+                    if g == "Horror/Thriller" and m in [10, 11]: pred_rev_m *= 1.15
+                    if m == 7: pred_rev_m *= 0.92  # High competition penalty (July)
+                    
+                    # Reality floor logic based on historical multipliers
+                    if pred_rev_m < b * 0.8:
+                        seasonal_mult = 1.6 if m in [7, 12] else 1.2
+                        base_mult = 2.8 if b <= 50 else 2.2
+                        pred_rev_m = b * base_mult * seasonal_mult
+                    
+                    simulated_outcomes.append(pred_rev_m)
 
-                # floor realism
-                if pred_rev_m < b * 0.8:
-                    seasonal = 1.6 if m in [7, 12] else 1.2
-                    base = 2.8 if b <= 50 else 2.2
-                    pred_rev_m = b * base * seasonal
-
-                roi = pred_rev_m / b
+                # Monte Carlo Statistical Analysis
+                rev_array = np.array(simulated_outcomes)
+                avg_rev = np.mean(rev_array)
+                low_risk = np.percentile(rev_array, 5)   # Worst-case (5% probability)
+                high_pot = np.percentile(rev_array, 95)  # Best-case (95% probability)
 
                 results.append({
                     "Genre": g,
                     "Month": m,
                     "Budget_M": b,
-                    "Forecasted_Revenue_M": round(pred_rev_m, 2),
-                    "ROI": round(roi, 2)
+                    "Forecasted_Revenue_M": round(avg_rev, 2),
+                    "Lower_Bound_M": round(low_risk, 2), # Strategic Floor
+                    "Upper_Bound_M": round(high_pot, 2), # Strategic Ceiling
+                    "ROI": round(avg_rev / b, 2),
+                    "Risk_Status": "High" if (high_pot - low_risk) / avg_rev > 0.4 else "Stable"
                 })
 
     sim_df = pd.DataFrame(results)
+    
+    # Identify strategic best-performers
     best_rev = sim_df.loc[sim_df["Forecasted_Revenue_M"].idxmax()].to_dict()
     best_roi = sim_df.loc[sim_df["ROI"].idxmax()].to_dict()
+    
     return best_rev, best_roi, sim_df
 
 

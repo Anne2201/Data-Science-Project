@@ -1,0 +1,2 @@
+Genre,Month,Budget_M,Forecasted_Revenue_M,Lower_Bound_M,Upper_Bound_M,ROI,Risk_Status
+Action/Blockbuster,7,200,704.0,704.0,704.0,3.52,Stable
