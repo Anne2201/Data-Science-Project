@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 # ------------------------------------------------------
-# Section1: Input/ Output: Operations and  Persistence
+# Input/ Output: Operations and  Persistence
 # -------------------------------------------------------
 def ensure_results_dirs(root: str = "results") -> Tuple[Path, Path]:
     """
@@ -51,7 +51,7 @@ def _safe_filter_year(df: pd.DataFrame, y0: int, y1: int) -> pd.DataFrame:
 
 
 # ----------------------------------------------------------
-# Section 2: Exploratory data analysis (EDA) and Historical
+# Exploratory data analysis (EDA) and Historical
 # -----------------------------------------------------------
 def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
     """
@@ -292,16 +292,26 @@ def correlation_heatmap(df: pd.DataFrame):
 
 
 def distributor_power_and_opening_2plots(df: pd.DataFrame) -> plt.Figure:
+    """
+    Operational Benchmarking: Market Power vs. Launch Performance.
+    
+    Methodology:
+    - Plot 1: Total Revenue by Distributor, measuring historical market footprint.
+    - Plot 2: Median Opening Weekend by Genre, measuring 'Hype' and marketing efficiency.
+    - Helps distinguish between long-term success and immediate theatrical impact.
+    """
     d = _safe_filter_year(df, 1990, 2023).copy()
 
     fig, axes = plt.subplots(1, 2, figsize=(20, 10))
     fig.suptitle("Distributor Power and Opening Performance (1990–2023)", fontsize=16)
 
+    # Historical dominance analysis
     dist_total = d.groupby("Distributor")["World Wide Sales (in $)"].sum().sort_values(ascending=False).head(10)
     axes[0].barh(dist_total.index.astype(str), dist_total.values)
     axes[0].set_title("Top 10 Distributors by Total Revenue")
     axes[0].grid(True, axis="x", alpha=0.25)
 
+    # Launch performance analysis (Marketing effectiveness)
     if "Domestic Opening (in $)" in d.columns:
         genre_open = d.groupby("Main_Genre")["Domestic Opening (in $)"].median().sort_values(ascending=False).head(12)
         axes[1].barh(genre_open.index.astype(str), genre_open.values)
@@ -314,10 +324,17 @@ def distributor_power_and_opening_2plots(df: pd.DataFrame) -> plt.Figure:
 
 
 def seasonality_revenue_heatmap(df: pd.DataFrame):
+    """
+    Strategic Window Analysis: Maps average revenue across genres and months.
+    
+    Aim: Identify the optimal 'theatrical windows' (e.g., Summer Blockbusters vs. Holiday releases).
+    The heatmap highlights seasonal trends that the LSTM model will later use for forecasting.
+    """
     d = _safe_filter_year(df, 1990, 2023).copy()
     top_genres = d["Main_Genre"].value_counts().head(10).index
     d = d[d["Main_Genre"].isin(top_genres)]
 
+    # Pivot table creation to align Genres (rows) with Months (columns)
     pivot = d.pivot_table(index="Main_Genre", columns="Release_Month", values="World Wide Sales (in $)", aggfunc="mean").fillna(0)
 
     fig = plt.figure(figsize=(16, 9))
@@ -331,6 +348,12 @@ def seasonality_revenue_heatmap(df: pd.DataFrame):
 
 
 def genre_concentration_heatmap(df: pd.DataFrame):
+    """
+    Market Specialization Study: Measures the density of specific genres per month.
+    
+    Methodology: Uses binary indicators to calculate the probability of finding a specific 
+    genre in a given month, revealing industry release patterns and 'genre-specific' seasons.
+    """
     d = df.copy()
     genre_cols = [c for c in d.columns if c.startswith("is_")]
     if not genre_cols:
@@ -354,6 +377,12 @@ def genre_concentration_heatmap(df: pd.DataFrame):
 
 
 def release_volume_heatmap(df: pd.DataFrame):
+    """
+    Competitive Saturation Analysis: Counts the total number of releases.
+    
+    Business Value: High volume in a specific cell indicates 'Red Oceans' (high competition), 
+    while low volume with high revenue suggests 'Blue Oceans' (strategic opportunities).
+    """
     d = df.copy()
     pivot = d.pivot_table(index="Release_Month", columns="Main_Genre", values="Title", aggfunc="count").fillna(0)
     if 0 in pivot.index:
@@ -370,6 +399,12 @@ def release_volume_heatmap(df: pd.DataFrame):
 
 
 def intl_revenue_by_genre_bar(df: pd.DataFrame) -> plt.Figure:
+    """
+    Globalization Metric: Compares international appeal across genres.
+    
+    Note: If explicit international data is missing, a conservative 40% heuristic is applied 
+    based on historical industry averages for global export weight.
+    """
     d = df.copy()
     if "International Sales (in $)" not in d.columns:
         d["International Sales (in $)"] = d["World Wide Sales (in $)"] * 0.4
@@ -399,6 +434,13 @@ def mean_budget_by_genre_bar(df: pd.DataFrame) -> plt.Figure:
 
 
 def opening_boxplot_by_genre_log(df: pd.DataFrame) -> plt.Figure:
+    """
+    Launch Risk Analysis: Visualizes the variance and spread of opening weekends.
+    
+    Methodology:
+    - Boxplots reveal the 'Interquartile Range' (typical performance) vs. 'Outliers' (blockbusters).
+    - Log Scale is used to visualize the massive performance gap between niche and tentpole films.
+    """
     d = df.copy()
     d = d.dropna(subset=["Domestic Opening (in $)", "Main_Genre"])
     # keep reasonable top genres
@@ -475,10 +517,18 @@ def final_market_share_summary_4pies(df: pd.DataFrame) -> plt.Figure:
 
     return fig
 
-# -------------------------
-# CLUSTERING
-# -------------------------
+# --------------------------------
+# Clustering (Market Segmentation)
+# ---------------------------------
 def kmeans_segmentation_scatter(df: pd.DataFrame, n_clusters: int = 4, random_state: int = 42):
+    """
+    Unsupervised Learning: K-Means Clustering.
+    Segments the market into distinct movie profiles (e.g., Blockbusters, Indie, Mid-budget).
+    
+    Methodology:
+    - Log-transformation is used to normalize the distribution before clustering.
+    - StandardScaler ensures that Budget and Sales contribute equally to the distance metrics.
+    """
     from sklearn.cluster import KMeans
     from sklearn.preprocessing import StandardScaler
 
@@ -517,9 +567,13 @@ def kmeans_cluster_profiles_table(df_clust: pd.DataFrame) -> pd.DataFrame:
 
 
 # -------------------------
-# Machine Learning plots
+# Machine Learning Validation
 # -------------------------
 def ml_comparison_barplot(comparison_df: pd.DataFrame) -> plt.Figure:
+    """
+    Model Benchmarking: Compares R² scores across all trained algorithms.
+    Provides a visual justification for the selection of the final predictive ensemble.
+    """
     fig = plt.figure(figsize=(12, 7))
     plt.barh(comparison_df["Model"].astype(str), comparison_df["R2"].values)
     plt.title("Benchmark Summary: R2 by Model")
@@ -529,6 +583,10 @@ def ml_comparison_barplot(comparison_df: pd.DataFrame) -> plt.Figure:
 
 
 def ml_rf_feature_importance_plot(importance_df: pd.DataFrame) -> plt.Figure:
+    """
+    Identifies the most influential predictors for revenue.
+    Extracted from the Random Forest ensemble to guide studio investment focus.
+    """
     top = importance_df.sort_values("Importance", ascending=False).head(15)
     fig = plt.figure(figsize=(12, 7))
     plt.barh(top["Feature"].astype(str), top["Importance"].values)
@@ -552,6 +610,10 @@ def ml_lr_coefficients_plot(coef_df: pd.DataFrame) -> plt.Figure:
 # LSTM + STRATEGY plots
 # -------------------------
 def lstm_forecast_vs_actual_plot(y_test, preds) -> plt.Figure:
+    """
+    Deep Learning Validation: Time-series forecasting performance.
+    Compares the LSTM's predicted trajectory against unseen historical test data.
+    """
     fig = plt.figure(figsize=(15, 6))
     ax = plt.gca()
     ax.plot(y_test, label="Actual (Scaled)", linewidth=2, alpha=0.7)
@@ -579,6 +641,10 @@ def strategic_simulation_summary_table(best_rev: Dict[str, Any], best_roi: Dict[
 
 
 def plot_dynamic_seasonal_strategy(sim_df: pd.DataFrame, best_rev: Dict[str, Any], best_roi: Dict[str, Any]) -> plt.Figure:
+    """
+    Theatrical Window Optimizer: Maps monthly revenue potential.
+    Identifies the most lucrative months for high-priority genres based on LSTM simulations.
+    """
     top_genres = sorted(list(set([best_rev["Genre"], best_roi["Genre"]])))
     plot_data = sim_df[sim_df["Genre"].isin(top_genres)].copy()
 
@@ -648,6 +714,10 @@ def plot_opening_vs_total_pie(best_design: Dict[str, Any]) -> plt.Figure:
 
 
 def plot_lifecycle_forecast(best_design: Dict[str, Any]) -> plt.Figure:
+    """
+    Cash-Flow Projection: Simulates the 12-week theatrical decay curve.
+    Crucial for financial planning and calculating the speed of capital recovery.
+    """
     total_revenue_m = float(best_design.get("Forecasted_Revenue_M", best_design.get("Forecasted_Rev_M", 0.0)))
     budget_m = float(best_design.get("Budget_M", 0.0))
 
@@ -668,6 +738,11 @@ def plot_lifecycle_forecast(best_design: Dict[str, Any]) -> plt.Figure:
 
 
 def diversified_strategic_matrix_plot(diversified_df: pd.DataFrame) -> plt.Figure:
+    """
+    Portfolio Optimization: The Final Strategic Matrix.
+    Maps each Studio (Disney, Warner, etc.) onto a Budget/ROI landscape.
+    The bubble size represents the absolute financial volume (Forecasted Revenue).
+    """
     fig = plt.figure(figsize=(14, 8))
     ax = plt.gca()
 
