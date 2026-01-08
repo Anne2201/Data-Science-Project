@@ -3,7 +3,7 @@
 From Data to Screen: A Strategic Framework for Movie Investment & Risk Optimization
 
 ## Project description
-"This project focuses on transforming raw cinematic data into actionable investment strategies. By bridging the gap between decades of historical market trends and state-of-the-art Deep Learning models, the framework identifies high-potential movie projects while quantifying the financial risks associated with the upcoming 2026–2035 decade. The goal is to move beyond simple predictions to provide a robust decision-making tool for studio portfolio management."
+This project focuses on transforming raw cinematic data into actionable investment strategies. By bridging the gap between decades of historical market trends and state-of-the-art Deep Learning models, the framework identifies high-potential movie projects while quantifying the financial risks associated with the upcoming 2026–2035 decade. 
 
 ## Objective
 
