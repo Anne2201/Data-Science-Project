@@ -1,4 +1,6 @@
-# src/data_loader.py
+# src/data_loader.py - Data Ingestion & Preprocessing Pipeline
+# This module handles the ectraction, the tranformation and the loading process, 
+# ensuring data integrity and creating features for both ML and LSTM models.
 from __future__ import annotations
 
 import os
@@ -9,8 +11,11 @@ from typing import Optional, List
 import numpy as np
 import pandas as pd
 
-
+# ---------------------------------------------------------
+# Extraction and Specialized Parsers
+# ---------------------------------------------------------
 def load_excel(path) -> pd.DataFrame:
+    """Standard ingestion of the raw cinematic dataset."""
     return pd.read_excel(path)
 
 
@@ -55,14 +60,23 @@ def parse_release_date(series: pd.Series) -> pd.Series:
         parsed = pd.to_datetime(series, format=fmt, errors="coerce")
         if parsed.notna().mean() > 0.7:
             return parsed
-    # Clean fallback for messy date strings
+    # Suppression of UserWarnings during broad fallback parsing for a clean console
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
         return pd.to_datetime(series, errors="coerce", dayfirst=True)
     return pd.to_datetime(series, errors="coerce", dayfirst=True)
 
-
+# ---------------------------------------------------------
+# Feature Engineering and Data Cleaning
+# ---------------------------------------------------------
 def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[str]] = None) -> pd.DataFrame:
+    """
+    Logic:
+    1. Infrastructure: Checks for mandatory columns and creates fallbacks.
+    2. Genre Encoding: Implements Multi-label Binarization for genre analysis.
+    3. Missing Value Imputation: Uses Medians to maintain distribution stability.
+    4. Financial Metrics: Calculates ROI and International exposure.
+    """
     if target_genres is None:
         target_genres = ["Action", "Adventure", "Animation", "Comedy", "Drama", "Family", "Sci-Fi", "Horror", "Thriller"]
 
@@ -85,17 +99,15 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
         if col not in d.columns:
             d[col] = np.nan
 
-    # Data Cleaning
-    # Runtime
+    # Runtime standardization
     d["Running Time"] = d["Running Time"].apply(convert_runtime)
 
-    # Genres
+    # Genres Processing: Extracts Main Genre and creates Binary Features (is_Genre)
     d["Genre_List"] = d["Genre"].apply(clean_genre_list)
     d["Main_Genre"] = d["Genre_List"].apply(lambda x: x[0] if isinstance(x, list) and len(x) else "Unknown")
     for g in target_genres:
         d[f"is_{g}"] = d["Genre_List"].apply(lambda xs: 1 if isinstance(xs, list) and g in xs else 0)
 
-    #Date Processing
     # Dates
     d["Release Date"] = parse_release_date(d["Release Date"])
     d["Year"] = d["Release Date"].dt.year
@@ -114,7 +126,7 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
 
     d["Domestic Sales (in $)"] = d["Domestic Sales (in $)"].fillna(0)
 
-    # ROI
+    # ROI Calculation
     d["ROI"] = np.where(d["Budget (in $)"] > 0, d["World Wide Sales (in $)"] / d["Budget (in $)"], np.nan)
 
     # International Sales
@@ -123,8 +135,18 @@ def clean_and_engineer_movies_df(df: pd.DataFrame, target_genres: Optional[List[
 
     return d
 
-
+# ----------------------------------
+# Deep Learning specific formatting
+# ----------------------------------
 def clean_for_timeseries_lstm(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Final formatting specifically for the LSTM Neural Network.
+    
+    Technical Highlights:
+    - Normalizes Sales/Budgets via Logarithmic Scaling (np.log1p).
+    - Ensures month periodicity (1-12) for seasonal pattern recognition.
+    - Prepares the data for sequential windowing.
+    """
     d = df.copy()
 
     date_col = next((c for c in d.columns if "date" in c.lower()), None)
@@ -140,9 +162,11 @@ def clean_for_timeseries_lstm(df: pd.DataFrame) -> pd.DataFrame:
 
     d = d.dropna(subset=["World Wide Sales (in $)", "Budget (in $)"])
 
+    # Log Transformation: Mandatory for Deep Learning to handle the high dynamic range of Box Office data
     d["Log_Sales"] = np.log1p(d["World Wide Sales (in $)"])
     d["Log_Budget"] = np.log1p(d["Budget (in $)"])
 
+    # Cleaning release months for the temporal model
     d["Release_Month"] = pd.to_numeric(d["Release_Month"], errors="coerce").fillna(6).astype(int)
     d.loc[(d["Release_Month"] < 1) | (d["Release_Month"] > 12), "Release_Month"] = 6
 
