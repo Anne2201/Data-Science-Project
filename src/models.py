@@ -6,6 +6,7 @@ from typing import Dict, Tuple, Any
 import numpy as np
 import pandas as pd
 
+# Machine Learning imports for baseline comparison
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LinearRegression, Ridge, LassoCV
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, VotingRegressor
@@ -13,14 +14,21 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics import r2_score
 
+# Deep Learning framework (PyTorch)
 import torch
 import torch.nn as nn
 
 
-# =========================
-# Machine Learning
-# =========================
+# ====================================================
+# Section 1: Machine Learning (Baseline Models)
+# ====================================================
+
 def _build_ml_dataset(df: pd.DataFrame, include_distributor: bool = True):
+    """
+    Feature Engineering for classical ML models.
+    Converts categorical genres and distributors into dummy variables (One-Hot Encoding).
+    Target variable (Sales) is Log-transformed to handle extreme outliers (Blockbusters).
+    """
     d = df.copy()
     base_features = ["Budget (in $)", "Running Time", "Release_Month", "Main_Genre"]
     if include_distributor and "Distributor" in d.columns:
@@ -38,15 +46,20 @@ def _build_ml_dataset(df: pd.DataFrame, include_distributor: bool = True):
 
 
 def train_compare_models(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any], Dict[str, Any]]:
+    """
+    Benchmarking suite: Compares multiple regression algorithms.
+    Includes an Ensemble 'VotingRegressor' to combine the strengths of different models.
+    """
     X, y = _build_ml_dataset(df, include_distributor=True)
-
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # Initialize diverse regression algorithms
     lr = LinearRegression()
     ridge = make_pipeline(StandardScaler(with_mean=False), Ridge(alpha=1.0))
     lasso = make_pipeline(StandardScaler(with_mean=False), LassoCV(cv=5, random_state=42))
     rf = RandomForestRegressor(n_estimators=200, random_state=42, n_jobs=-1)
     gb = GradientBoostingRegressor(random_state=42)
+    # Ensemble method: Combining Linear and Tree-based models
     voting = VotingRegressor(estimators=[("lr", lr), ("rf", rf), ("gb", gb)])
 
     models = {
@@ -66,6 +79,7 @@ def train_compare_models(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]
 
     comparison_df = pd.DataFrame(rows).sort_values("R2", ascending=False).reset_index(drop=True)
 
+    # Cross-validation to ensure model robustness and prevent overfitting
     best_name = comparison_df.iloc[0]["Model"]
     best_model = models[best_name]
     cv = cross_val_score(best_model, X, y, cv=5, scoring="r2")
@@ -78,6 +92,7 @@ def train_compare_models(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]
         "n_features": int(X.shape[1])
     }
 
+    # Extracting Feature Importance to identify primary success drivers
     artifacts: Dict[str, Any] = {"rf_importance_df": None, "lr_coef_df": None}
 
     # RF importance
@@ -93,13 +108,18 @@ def train_compare_models(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]
     return comparison_df, metrics, artifacts
 
 
-# =========================
-# LSTM
-# =========================
+# =================================
+# Section 2: LSTM (Deep Learning)
+# ==================================
 def prepare_lstm_data(df_ts: pd.DataFrame, window_size: int = 5):
+    """
+    Sliding window data preparation for Time-Series forecasting.
+    Creates sequences of 5 consecutive data points to predict the next value.
+    """
     features = ["Log_Sales", "Log_Budget", "Release_Month"]
     data = df_ts[features].fillna(0).values
 
+    # MinMaxScaler is essential for LSTM neural network convergence
     scaler = MinMaxScaler()
     scaled = scaler.fit_transform(data)
 
@@ -117,6 +137,10 @@ def prepare_lstm_data(df_ts: pd.DataFrame, window_size: int = 5):
 
 
 class MovieLSTM(nn.Module):
+    """
+    Recurrent Neural Network Architecture (LSTM).
+    Designed to capture long-term temporal dependencies in theatrical revenue trends.
+    """
     def __init__(self, input_size: int = 3, hidden_size: int = 64, num_layers: int = 2):
         super().__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers=num_layers, batch_first=True)
@@ -128,8 +152,8 @@ class MovieLSTM(nn.Module):
 
 
 def train_lstm(X_seq: np.ndarray, y_seq: np.ndarray, train_size: int, epochs: int = 60, lr: float = 0.01):
+    
     device = "cpu"
-
     X_train = torch.tensor(X_seq[:train_size], dtype=torch.float32).to(device)
     y_train = torch.tensor(y_seq[:train_size], dtype=torch.float32).reshape(-1, 1).to(device)
     X_test = torch.tensor(X_seq[train_size:], dtype=torch.float32).to(device)
@@ -159,8 +183,9 @@ def train_lstm(X_seq: np.ndarray, y_seq: np.ndarray, train_size: int, epochs: in
 
 def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module, n_simulations: int = 100):
     """
-    Monte Carlo Simulation for revenue forecasting and ROI optimization.
-    Injects market uncertainty (noise) to calculate confidence intervals and financial risk.
+    Strategic Simulator using Monte Carlo methodology.
+    Simulates hundreds of market scenarios by adding noise to input features.
+    Allows for risk quantification via 5th/95th percentile confidence intervals.
     """
     model.eval()
     np.random.seed(42)
@@ -239,8 +264,8 @@ def strategic_forecast_simulator(df_ts: pd.DataFrame, model: nn.Module, n_simula
 
 def generate_diversified_majors_plan(model: nn.Module) -> pd.DataFrame:
     """
-    "Diversified Strategic Matrix: Studio Specialization (2026-2035)"
-    (plan 1 config optimale par studio).
+    Prescriptive Analytics: Generates a 10-year Strategic Matrix for Major Studios.
+    Assigns genres and budgets based on each studio's historical 'DNA' and performance limits.
     """
     model.eval()
     np.random.seed(42)
