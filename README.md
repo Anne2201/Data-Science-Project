@@ -19,13 +19,13 @@ The aim of this project is to provide studio executives and financial analysts w
 
 This project follows a four-stage analytical path:
 
-1. Descriptive Analytics: A deep dive into nearly a century of cinema history (1937–2023) to understand market concentration, distributor power, and the evolution of genre popularity.
+1. **Descriptive Analytics**: A deep dive into nearly a century of cinema history (1937–2023) to understand market concentration, distributor power, and the evolution of genre popularity.
 
-2. Market Segmentation (Clustering): Utilizing K-Means Clustering to categorize films into distinct strategic tiers (e.g., Global Blockbusters, Mid-Range, and Niche Indie).
+2. **Market Segmentation (Clustering)**: Utilizing K-Means Clustering to categorize films into distinct strategic tiers (e.g., Global Blockbusters, Mid-Range, and Niche Indie).
 
-3. Temporal Forecasting (LSTM): A Long Short-Term Memory (PyTorch) neural network architecture trained to recognize non-linear patterns and cyclical trends in theatrical sales.
+3. **Temporal Forecasting (LSTM)**: A Long Short-Term Memory (PyTorch) neural network architecture trained to recognize non-linear patterns and cyclical trends in theatrical sales.
 
-4. Risk Assessment (Monte Carlo): A stochastic simulation engine that runs 100 iterations per project, injecting market noise to generate probabilistic outcomes and ROI confidence intervals.
+4. **Risk Assessment (Monte Carlo)**: A stochastic simulation engine that runs 100 iterations per project, injecting market noise to generate probabilistic outcomes and ROI confidence intervals.
 
 ## Data
 
