@@ -9,10 +9,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# -------------------------
-# Input/ Output
-# -------------------------
+# ------------------------------------------------------
+# Section1: Input/ Output: Operations and  Persistence
+# -------------------------------------------------------
 def ensure_results_dirs(root: str = "results") -> Tuple[Path, Path]:
+    """
+    Infrastructure setup: Creates a structured hierarchy for outputs.
+    Separates visual assets (plots) from raw metrics (numerics) for reporting.
+    """
     root = Path(root)
     plots_dir = root / "plots"
     nums_dir = root / "numerics"
@@ -22,6 +26,10 @@ def ensure_results_dirs(root: str = "results") -> Tuple[Path, Path]:
 
 
 def save_figure(fig: plt.Figure, plots_dir: Path, filename: str, dpi: int = 170) -> None:
+    """
+    Exports Matplotlib figures with high-fidelity settings.
+    Uses 'bbox_inches=tight' to ensure labels are not cropped.
+    """
     out = plots_dir / filename
     fig.tight_layout()
     fig.savefig(out, dpi=dpi, bbox_inches="tight")
@@ -29,10 +37,12 @@ def save_figure(fig: plt.Figure, plots_dir: Path, filename: str, dpi: int = 170)
 
 
 def save_csv(df: pd.DataFrame, nums_dir: Path, filename: str) -> None:
+    """Persists numerical results for Excel-based audit or further analysis."""
     df.to_csv(nums_dir / filename, index=False)
 
 
 def _safe_filter_year(df: pd.DataFrame, y0: int, y1: int) -> pd.DataFrame:
+    """Utility to isolate specific historical eras for comparative analysis."""
     d = df.copy()
     if "Year" in d.columns:
         d = d.dropna(subset=["Year"])
@@ -40,16 +50,20 @@ def _safe_filter_year(df: pd.DataFrame, y0: int, y1: int) -> pd.DataFrame:
     return d
 
 
-# -------------------------
-# Exploratory data analysis / HISTORICAL 
-# -------------------------
+# ----------------------------------------------------------
+# Section 2: Exploratory data analysis (EDA) and Historical
+# -----------------------------------------------------------
 def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
+    """
+    Macro-Economic Dashboard: Tracks the evolution of the industry since 1937.
+    Analyzes production volume, budget inflation, and revenue globalization.
+    """
     d = _safe_filter_year(df, 1937, 2023)
 
     fig, axes = plt.subplots(2, 2, figsize=(20, 14))
     fig.suptitle("Historical Evolution of the Movie Industry (1937–2023)", fontsize=18)
 
-    # a) volume
+    # Subplot A: Industry Scaling (Volume of movies released)
     if "Year" in d.columns:
         count = d.groupby("Year").size()
         axes[0, 0].plot(count.index, count.values, marker="o", linewidth=1.6)
@@ -58,7 +72,7 @@ def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
     axes[0, 0].set_ylabel("Number of Movies")
     axes[0, 0].grid(True, alpha=0.25)
 
-    # b) budget mean
+    # Subplot B: Financial Intensity (Mean Budget growth)
     if {"Year", "Budget (in $)"}.issubset(d.columns):
         b = d.groupby("Year")["Budget (in $)"].mean()
         axes[0, 1].plot(b.index, b.values, linewidth=1.6)
@@ -67,7 +81,7 @@ def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
     axes[0, 1].set_ylabel("Mean Budget")
     axes[0, 1].grid(True, alpha=0.25)
 
-    # c) revenue World Wide vs International
+    # Subplot C: Revenue Globalization (Domestic vs International trends)
     if {"Year", "World Wide Sales (in $)", "International Sales (in $)"}.issubset(d.columns):
         rev = d.groupby("Year")[["World Wide Sales (in $)", "International Sales (in $)"]].mean()
         axes[1, 0].plot(rev.index, rev["World Wide Sales (in $)"], label="World Wide", linewidth=1.6)
@@ -78,7 +92,7 @@ def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
     axes[1, 0].set_ylabel("Revenue ($)")
     axes[1, 0].grid(True, alpha=0.25)
 
-    # d) all genres evolution (top 10 to keep readable)
+    # Subplot D: all genres evolution (top 10 to keep readable)
     if {"Year", "Main_Genre"}.issubset(d.columns):
         g = d[d["Main_Genre"] != "Unknown"].groupby(["Year", "Main_Genre"]).size().unstack(fill_value=0)
         top_cols = g.sum().sort_values(ascending=False).head(10).index
@@ -94,26 +108,40 @@ def historical_dashboard_4plots(df: pd.DataFrame) -> plt.Figure:
 
 
 def market_share_pies_2plots(df: pd.DataFrame):
+    """
+    Competitive Landscape Analysis: Visualizes market concentration.
+    Uses Pie Charts to represent the revenue dominance of major Distributors and Genres.
+    
+    Methodology:
+    - Focuses on the Modern Era (1990-2023) for current market relevance.
+    - Aggregates long-tail competitors into an 'Others' category to maintain visual clarity.
+    """
+    # Filter for the modern theatrical era
     d = _safe_filter_year(df, 1990, 2023)
 
+    # Initialize a dual-panel visualization for side-by-side comparison
     fig, axes = plt.subplots(1, 2, figsize=(18, 9))
     fig.suptitle("Market Share Analysis (Revenue Based: 1990–2023)", fontsize=16)
 
-    # distributor
+    # # Grouping revenue by studio to identify the "Big Players"
     dist_sales = d.groupby("Distributor")["World Wide Sales (in $)"].sum().sort_values(ascending=False)
     top = dist_sales.head(8)
     others = pd.Series({"Others": dist_sales.iloc[8:].sum()})
     final_dist = pd.concat([top, others])
+    # Generate the Pie Chart with percentage labels
     axes[0].pie(final_dist.values, labels=final_dist.index.astype(str), autopct="%1.1f%%", startangle=140)
     axes[0].set_title("Market Share by Distributor (Top 8 + Others)")
+    # Export numerical percentages for reporting (market concentration ratio)
     dist_pct = (final_dist / final_dist.sum() * 100).round(2).reset_index()
     dist_pct.columns = ["Distributor", "MarketSharePct"]
 
-    # genre
+    # Genre Revenue Distribution: Analyzing which content types generate the highest financial volume
     genre_sales = d.groupby("Main_Genre")["World Wide Sales (in $)"].sum().sort_values(ascending=False)
+    # Grouping non-dominant genres to highlight core market drivers
     topg = genre_sales.head(8)
     othersg = pd.Series({"Others": genre_sales.iloc[8:].sum()})
     final_gen = pd.concat([topg, othersg])
+    # Visualization of genre-based revenue weight + export numerical data for strategy documentation
     axes[1].pie(final_gen.values, labels=final_gen.index.astype(str), autopct="%1.1f%%", startangle=140)
     axes[1].set_title("Market Share by Main Genre (Top 8 + Others)")
     genre_pct = (final_gen / final_gen.sum() * 100).round(2).reset_index()
@@ -123,6 +151,16 @@ def market_share_pies_2plots(df: pd.DataFrame):
 
 
 def market_share_evolution_4pies(df: pd.DataFrame) -> plt.Figure:
+    """
+    Long-term Structural Analysis: Classic vs. Modern Era comparison.
+    Visualizes how market dominance (Distributors) and audience preferences (Genres) 
+    have shifted over nearly a century.
+    
+    Logic:
+    - Segregates data into two distinct windows: Golden Age (1937-1970) vs. Modern Era (2000-2023).
+    - Uses a recursive helper function to handle the 'Top 6 + Others' aggregation logic.
+    """
+    # Define time-period subsets for comparative study
     era_1 = _safe_filter_year(df, 1937, 1970)
     era_2 = _safe_filter_year(df, 2000, 2023)
 
@@ -130,19 +168,23 @@ def market_share_evolution_4pies(df: pd.DataFrame) -> plt.Figure:
     fig.suptitle("Evolution of Industry Structure: Classic vs Modern Era", fontsize=18)
 
     def top6_plus_others(data, col):
+        """Helper to aggregate market share and isolate dominant players."""
         s = data.groupby(col)["World Wide Sales (in $)"].sum().sort_values(ascending=False)
         top = s.head(6)
         others = pd.Series({"Others": s.iloc[6:].sum()})
         return pd.concat([top, others])
 
+    # Comparative metrics
     d1 = top6_plus_others(era_1, "Distributor")
     d2 = top6_plus_others(era_2, "Distributor")
     g1 = top6_plus_others(era_1, "Main_Genre")
     g2 = top6_plus_others(era_2, "Main_Genre")
 
+    # Plotting: Row 0 focuses on Business consolidation (Distributors)
     axes[0, 0].pie(d1.values, labels=d1.index.astype(str), autopct="%1.1f%%", startangle=140)
     axes[0, 0].set_title("Distributor Market Share (1937–1970)")
 
+    # Plotting: Row 1 focuses on Cultural shifts (Genre popularity)
     axes[0, 1].pie(d2.values, labels=d2.index.astype(str), autopct="%1.1f%%", startangle=140)
     axes[0, 1].set_title("Distributor Market Share (2000–2023)")
 
@@ -156,12 +198,24 @@ def market_share_evolution_4pies(df: pd.DataFrame) -> plt.Figure:
 
 
 def roi_by_genre_bar(df: pd.DataFrame):
+    """
+    Financial Performance Benchmarking: Median Return on Investment (ROI).
+    
+    Methodology:
+    - Calculates ROI as a ratio (Revenue / Budget).
+    - Uses the Median instead of the Mean to mitigate the impact of extreme outliers.
+    - Includes a 'Break-even' reference line (ROI = 1) to identify intrinsically 
+      profitable vs. risky genres.
+    """
     d = _safe_filter_year(df, 1990, 2023).copy()
+    # Financial Calculation: Protecting against DivisionByZero and ensuring data integrity
     d["ROI"] = np.where(d["Budget (in $)"] > 0, d["World Wide Sales (in $)"] / d["Budget (in $)"], np.nan)
+    # Sorting by median profitability for strategic ranking
     genre_roi = d.groupby("Main_Genre")["ROI"].median().sort_values(ascending=False)
 
     fig = plt.figure(figsize=(16, 8))
     plt.bar(genre_roi.index.astype(str), genre_roi.values)
+    # Strategic Baseline: ROI of 1 means the movie just covered its production budget
     plt.axhline(1, linestyle="--", linewidth=2)
     plt.title("Profitability Analysis: Median ROI by Genre (1990–2023)")
     plt.ylabel("Median ROI (Revenue/Budget)")
@@ -172,6 +226,14 @@ def roi_by_genre_bar(df: pd.DataFrame):
 
 
 def budget_vs_revenue_scatter_top10_distributors(df: pd.DataFrame) -> plt.Figure:
+    """
+    Efficiency Analysis: Correlation between production investment and global returns.
+    
+    Technical Choice:
+    - Logarithmic scales are used to linearize the power-law relationship 
+      between budget and sales, revealing strategic clusters.
+    - Focuses on Top 10 Distributors to highlight the competitive of the industry.
+    """
     d = df.copy()
     top_distribs = d.groupby("Distributor")["World Wide Sales (in $)"].sum().sort_values(ascending=False).head(10).index
     dt = d[d["Distributor"].isin(top_distribs)].copy()
@@ -181,6 +243,7 @@ def budget_vs_revenue_scatter_top10_distributors(df: pd.DataFrame) -> plt.Figure
     for name, sub in dt.groupby("Distributor"):
         ax.scatter(sub["Budget (in $)"], sub["World Wide Sales (in $)"], alpha=0.6, label=str(name), s=30)
 
+    # Log scales are vital here due to the exponential nature of box office hits
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_title("Budgetary Strategy: Budget vs Revenue (Top 10 Distributors)")
@@ -192,11 +255,19 @@ def budget_vs_revenue_scatter_top10_distributors(df: pd.DataFrame) -> plt.Figure
 
 
 def correlation_heatmap(df: pd.DataFrame):
+    """
+    Multi-variate Analysis: Identifying Success Drivers (1990–2023).
+    
+    Process:
+    - Calculates Pearson correlation coefficients across financial and technical metrics.
+    - Feature Engineering: Includes the Top 6 Genres as binary indicators to detect 
+      genre-specific correlations with profitability (ROI).
+    """
     d = _safe_filter_year(df, 1990, 2023).copy()
     feats = ["Budget (in $)", "World Wide Sales (in $)", "Domestic Opening (in $)", "Running Time", "ROI", "International Sales (in $)"]
     feats = [c for c in feats if c in d.columns]
 
-    # top 6 genres as binary
+    # One-Hot Encoding (binary) of top genres to integrate categorical data into the heatmap
     if "Main_Genre" in d.columns:
         top = d["Main_Genre"].value_counts().head(6).index
         for g in top:
@@ -206,6 +277,7 @@ def correlation_heatmap(df: pd.DataFrame):
 
     corr = d[feats].corr()
 
+    # Visualization using an intensity map
     fig = plt.figure(figsize=(14, 10))
     plt.imshow(corr.values, aspect="auto")
     plt.xticks(range(len(corr.columns)), corr.columns, rotation=45, ha="right")
@@ -213,6 +285,7 @@ def correlation_heatmap(df: pd.DataFrame):
     plt.title("Correlation Heatmap: Success Factors (1990–2023)")
     plt.colorbar()
 
+    # Stack the matrix for numerical export and further audit
     corr_long = corr.stack().reset_index()
     corr_long.columns = ["Feature1", "Feature2", "Correlation"]
     return fig, corr_long
