@@ -67,13 +67,17 @@ from src.models import (
 )
 
 def main():
+    #------------------------------------------------------------------------
     # 0. Setup directories for results
     # Initialize the results infrastructure for persistence of plots and data
+    # -----------------------------------------------------------------------
     plots_dir, nums_dir = ensure_results_dirs("results")
     print("Initializing Movie Data Analytics Pipeline...")
 
+    # -----------------------------------------------------------------
     # 1. Data Ingestion and cleaning
     # Robust file path management: support different environment steups 
+    # ------------------------------------------------------------------
     base_dir = Path(__file__).resolve().parent
     excel_path = base_dir / "Data1.xlsx" # Looking for file in root
     
@@ -170,10 +174,10 @@ def main():
     save_figure(lstm_forecast_vs_actual_plot(lstm_artifacts["y_test"], lstm_artifacts["preds"]), plots_dir, "20_lstm_forecast.png")
     save_figure(lstm_training_loss_plot(lstm_artifacts["losses"]), plots_dir, "21_lstm_loss.png")
 
-    # ---------------------------------
+    # ------------------------------------------------------------------------
     # 5. Strategic decision support
     # Aim: Transform model outputs into actionable investment recommendations
-    # ----------------------------------
+    # ------------------------------------------------------------------------
     # MONTE CARLO SIMULATION: Transitioning from static prediction to probabilistic risk assessment
     # We run 100 simulations per scenario to determine the confidence intervals
     best_rev, best_roi, mc_results_df = strategic_forecast_simulator(df_ts, model_lstm, n_simulations=100)
