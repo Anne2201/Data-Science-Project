@@ -15,6 +15,11 @@ matplotlib.use("Agg")
 warnings.filterwarnings("ignore", category=UserWarning, module="pandas")
 warnings.filterwarnings("ignore", category=FutureWarning)
 
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
 # Dynamic path configuration to allow importing from the /src directory
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
